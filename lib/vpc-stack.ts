@@ -1,14 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
-export class TypescriptExampleStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
-
-    // The code that defines your stack goes here
-  }
-}
-
 export class VpcStack extends cdk.Stack {
   readonly vpc: ec2.Vpc;
   readonly ingressSecurityGroup: ec2.SecurityGroup
@@ -28,5 +20,19 @@ export class VpcStack extends cdk.Stack {
       }],
       natGateways: 0
     });
+
+    this.ingressSecurityGroup = new ec2.SecurityGroup(this, 'ingress-security-group', {
+      vpc: this.vpc,
+      allowAllOutbound: false,
+      securityGroupName: 'IngressSecurityGroup',
+    });
+    this.ingressSecurityGroup.addIngressRule(ec2.Peer.ipv4('10.0.0.0/16'), ec2.Port.tcp(3306));
+
+    this.egressSecurityGroup = new ec2.SecurityGroup(this, 'egress-security-group', {
+      vpc: this.vpc,
+      allowAllOutbound: false,
+      securityGroupName: 'EgressSecurityGroup',
+    });
+    this.egressSecurityGroup.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80));
   }
 }
